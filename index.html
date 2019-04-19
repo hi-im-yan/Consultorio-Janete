@@ -16,7 +16,7 @@
       <div class="col-6">
           <div class="container mt-4">
               <h1 class="display-4 text-center">
-                <i class="fas text-primary"></i> Consultorio<span class="text-primary"> </span>Janete</h1>
+                <i class="fas text-primary"></i><span class="text-primary">Sayuri</span> Odonto</h1>
                 <form id="cliente-form">
                   <div class="form-group">
                     <label for="name">Nome</label>
@@ -24,15 +24,23 @@
                   </div>
                   <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
-                    <input type="text" id="pagamento" class="form-control">
+                    <select id="pagamento"><option value="dinheiro">Dinheiro</option>
+                      
+                      <option value="débito">Débito</option>
+                      <option value="crédito">Crédito</option>
+                    </select>
                   </div>
                   <div class="form-group">
-                    <label for="isbn">Valor</label>
-                    <input type="text" id="isbn" class="form-control">
+                    <label for="valor">valor</label>
+                    <input type="text" id="valor" class="form-control">
                   </div>
                  <input type="submit" value="Adicionar" class="btn btn-primary btn-block">
                 </form>
+
+                <button onclick="download('teste.txt', 'text/plain')">Gerar Arquivo</button>
+<a href="" id="a" download>Clique aqui para fazer download</a>
             </div>
+            
       </div>
       <div class="col-6">
       <table class="table table-striped mt-5">
@@ -41,18 +49,19 @@
             <th>Nome</th>
             <th>Forma de pagamento</th>
             <th>Valor</th>
-            <th></th>
+            <th>Valor Descontado</th>
           </tr>
         </thead>
         <tbody id="cliente-list"></tbody>
       </table>
       <h1 id="valor-total"></h1>
     </div>
-    </div>
-    <a href="" id="a" download>click here to download your file</a>
-<button onclick="download('teste.txt', 'text/plain')">Create file</button>
+
     
-  
+    </div>
+    
+
+    
   </body>
 </html>
 

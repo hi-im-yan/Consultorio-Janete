@@ -1,10 +1,11 @@
-// cliente Class: Represents a cliente
+// cliente Class: Represents a client
 var valorTotal = 0;
 class Cliente {
-	constructor(name, pagamento, isbn) {
+	constructor(name, pagamento, valor, valor_descontado) {
 		this.name = name;
 		this.pagamento = pagamento;
-		this.isbn = isbn;
+		this.valor = valor;
+		this.valor_descontado = valor_descontado;
 	}
 }
 
@@ -18,15 +19,17 @@ class UI {
 
 	static addClienteToList(cliente) {
 		const list = document.querySelector('#cliente-list');
-		valorTotal = valorTotal + new Number(cliente.isbn);
+		valorTotal = new Number(valorTotal) + new Number(cliente.valor) - new Number(cliente.valor_descontado);
+		valorTotal = new Number(valorTotal).toFixed(2);
 		const row = document.createElement('tr');
 		row.innerHTML = `
         <td>${cliente.name}</td>
         <td>${cliente.pagamento}</td>
-        <td>${cliente.isbn}</td>
+        <td>${cliente.valor}</td>
+        <td>${cliente.valor_descontado}</td>
         <td><a href="#" class="btn btn-danger btn-sm delete">X</a></td>
       `;
-		document.getElementById('valor-total').innerHTML = `<h1> Valor Total: ${valorTotal}</h1>`;
+		document.getElementById('valor-total').innerHTML = `<h1> valor Total: ${valorTotal}</h1>`;
 
 		list.appendChild(row);
 	}
@@ -52,7 +55,7 @@ class UI {
 	static clearFields() {
 		document.querySelector('#name').value = '';
 		document.querySelector('#pagamento').value = '';
-		document.querySelector('#isbn').value = '';
+		document.querySelector('#valor').value = '';
 	}
 }
 
@@ -65,6 +68,7 @@ class Store {
 		} else {
 			clientes = JSON.parse(localStorage.getItem('clientes'));
 		}
+
 		console.log(clientes);
 		return clientes;
 	}
@@ -75,11 +79,10 @@ class Store {
 		localStorage.setItem('clientes', JSON.stringify(clientes));
 	}
 
-	static removecliente(isbn) {
+	static removecliente(name) {
 		const clientes = Store.getclientes();
-
 		clientes.forEach((cliente, index) => {
-			if (cliente.isbn === isbn) {
+			if (cliente.name === name) {
 				clientes.splice(index, 1);
 			}
 		});
@@ -91,35 +94,47 @@ class Store {
 // Event: Display clientes
 document.addEventListener('DOMContentLoaded', UI.displayclientes);
 
-function download(nome_txt, type) {
+function download(nome_arquivo_saida, type) {
 	var a = document.getElementById('a');
-	var pessoa = JSON.parse(localStorage.getItem('clientes'));
+	let pessoa = JSON.parse(localStorage.getItem('clientes'));
+	let pessoas = pessoa.toString();
 
+	let date = new Date();
+
+	let arquivo_saida = date.getDate() + '/' + new Number(date.getMonth() + 1) + '/' + date.getFullYear();
+	console.log(pessoas);
+	var cliente = [];
 	for (var i = 0; i < pessoa.length; i++) {
-		let cliente = pessoa[i];
-		console.log(cliente);
-		let cliente_name = new Blob([ cliente.name ], { type: 'text/plain' });
-		let cliente_pagamento = new Blob([ cliente ], { type: 'text/plain' });
-		a.href = URL.createObjectURL(cliente_name);
-		a.href = URL.createObjectURL(cliente_pagamento);
+		cliente[i] =
+			'\r\n' +
+			pessoa[i].name.toString() +
+			' - ' +
+			pessoa[i].pagamento.toString() +
+			' - ' +
+			pessoa[i].valor.toString() +
+			' -  ' +
+			pessoa[i].valor_descontado.toString() +
+			'\r\n';
+
+		//console.log(cliente[i]);
 	}
-	a.download = nome_txt;
+	a.href = URL.createObjectURL(
+		new Blob(
+			[
+				'Nome - Forma de Pagamento - Valor - Valor Descontado' + '\r\n' + '\r\n',
+				cliente,
+				'\r\n' + 'VALOR TOTAL -> ',
+				valorTotal
+			],
+			{
+				type: type
+			}
+		)
+	);
+	a.download = arquivo_saida;
 }
 
-function forloop() {
-	var pessoa = JSON.parse(localStorage.getItem('clientes'));
-	var arrClientes = [];
-	for (var i = 0; i < pessoa.length; i++) {
-		let cliente = pessoa[i];
-		console.log(cliente);
-		let cliente_name = new Blob([ cliente.name ], { type: 'text/plain' });
-		let cliente_pagamento = new Blob([ cliente ], { type: 'text/plain' });
-		a.href = URL.createObjectURL(cliente_name);
-		a.href = URL.createObjectURL(cliente_pagamento);
-	}
-}
-
-// Event: addCliente a cliente
+// Event: addCliente a clientes
 document.querySelector('#cliente-form').addEventListener('submit', (e) => {
 	// Prevent actual submit
 	e.preventDefault();
@@ -127,14 +142,21 @@ document.querySelector('#cliente-form').addEventListener('submit', (e) => {
 	// Get form values
 	const name = document.querySelector('#name').value;
 	const pagamento = document.querySelector('#pagamento').value;
-	const isbn = document.querySelector('#isbn').value;
+	const valor = document.querySelector('#valor').value;
+	let valor_descontado = 0;
+
+	if (pagamento === 'débito') {
+		valor_descontado = Math.round(new Number(valor * 1.49 / 100) * 100) / 100;
+	} else if (pagamento === 'crédito') {
+		valor_descontado = Math.round(new Number(valor * 2.39 / 100) * 100) / 100;
+	}
 
 	// Validate
-	if (name === '' || pagamento === '' || isbn === '') {
+	if (name === '' || pagamento === '' || valor === '') {
 		UI.showAlert('Preencha todos os campos', 'danger');
 	} else {
 		// Instatiate cliente
-		const cliente = new Cliente(name, pagamento, isbn);
+		const cliente = new Cliente(name, pagamento, valor, valor_descontado);
 
 		// addCliente cliente to UI
 		UI.addClienteToList(cliente);
@@ -156,7 +178,10 @@ document.querySelector('#cliente-list').addEventListener('click', (e) => {
 	UI.deletecliente(e.target);
 
 	// Remove cliente from store
-	Store.removecliente(e.target.parentElement.previousElementSibling.textContent);
+	Store.removecliente(
+		e.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling
+			.previousElementSibling.textContent
+	);
 
 	// Show success message
 	UI.showAlert('Removido', 'warning');
