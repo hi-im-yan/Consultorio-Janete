@@ -1,5 +1,8 @@
-// cliente Class: Represents a client
+//Essa variavel é pra ser usada em outros arquivos
+//Guarda o total recebido no dia
 var valorTotal = 0;
+
+// cliente Class: Representa um cliente
 class Cliente {
 	constructor(name, pagamento, valor, valor_descontado) {
 		this.name = name;
@@ -9,7 +12,7 @@ class Cliente {
 	}
 }
 
-// UI Class: Handle UI Tasks
+// UI Class: Tarefas da UI
 class UI {
 	static displayclientes() {
 		const clientes = Store.getclientes();
@@ -25,12 +28,11 @@ class UI {
 		row.innerHTML = `
         <td>${cliente.name}</td>
         <td>${cliente.pagamento}</td>
-        <td>${cliente.valor}</td>
+ 				<td>${cliente.valor}</td>
         <td>${cliente.valor_descontado}</td>
         <td><a href="#" class="btn btn-danger btn-sm delete">X</a></td>
       `;
-		document.getElementById('valor-total').innerHTML = `<h1> valor Total: ${valorTotal}</h1>`;
-
+		document.getElementById('valor-total').innerHTML = `<h1> Valor Total: ${valorTotal}</h1>`;
 		list.appendChild(row);
 	}
 
@@ -48,7 +50,7 @@ class UI {
 		const form = document.querySelector('#cliente-form');
 		container.insertBefore(div, form);
 
-		// Vanish in 3 seconds
+		// Some o alerta em 1 segundo
 		setTimeout(() => document.querySelector('.alert').remove(), 1000);
 	}
 
@@ -59,7 +61,7 @@ class UI {
 	}
 }
 
-// Store Class: Handles Storage
+// Store Class: Banco (LocalStorage)
 class Store {
 	static getclientes() {
 		let clientes;
@@ -94,52 +96,12 @@ class Store {
 // Event: Display clientes
 document.addEventListener('DOMContentLoaded', UI.displayclientes);
 
-function download(nome_arquivo_saida, type) {
-	var a = document.getElementById('a');
-	let pessoa = JSON.parse(localStorage.getItem('clientes'));
-	let pessoas = pessoa.toString();
-
-	let date = new Date();
-
-	let arquivo_saida = date.getDate() + '/' + new Number(date.getMonth() + 1) + '/' + date.getFullYear();
-	console.log(pessoas);
-	var cliente = [];
-	for (var i = 0; i < pessoa.length; i++) {
-		cliente[i] =
-			'\r\n' +
-			pessoa[i].name.toString() +
-			' - ' +
-			pessoa[i].pagamento.toString() +
-			' - ' +
-			pessoa[i].valor.toString() +
-			' -  ' +
-			pessoa[i].valor_descontado.toString() +
-			'\r\n';
-
-		//console.log(cliente[i]);
-	}
-	a.href = URL.createObjectURL(
-		new Blob(
-			[
-				'Nome - Forma de Pagamento - Valor - Valor Descontado' + '\r\n' + '\r\n',
-				cliente,
-				'\r\n' + 'VALOR TOTAL -> ',
-				valorTotal
-			],
-			{
-				type: type
-			}
-		)
-	);
-	a.download = arquivo_saida;
-}
-
 // Event: addCliente a clientes
 document.querySelector('#cliente-form').addEventListener('submit', (e) => {
-	// Prevent actual submit
+	// Previne um submit de ser nulo
 	e.preventDefault();
 
-	// Get form values
+	// Pegar valores do form
 	const name = document.querySelector('#name').value;
 	const pagamento = document.querySelector('#pagamento').value;
 	const valor = document.querySelector('#valor').value;
@@ -151,38 +113,38 @@ document.querySelector('#cliente-form').addEventListener('submit', (e) => {
 		valor_descontado = Math.round(new Number(valor * 2.39 / 100) * 100) / 100;
 	}
 
-	// Validate
+	// Validação
 	if (name === '' || pagamento === '' || valor === '') {
 		UI.showAlert('Preencha todos os campos', 'danger');
 	} else {
-		// Instatiate cliente
+		// Instanciar cliente
 		const cliente = new Cliente(name, pagamento, valor, valor_descontado);
 
-		// addCliente cliente to UI
+		// Adiciona o cliente na UI
 		UI.addClienteToList(cliente);
 
-		// addCliente cliente to store
+		// Adiciona o cliente no banco (LocalStorage)
 		Store.addCliente(cliente);
 
-		// Show success message
+		// Mostrar mensagem de sucesso
 		UI.showAlert('Adicionado', 'success');
 
-		// Clear fields
+		// Apagar textos do input
 		UI.clearFields();
 	}
 });
 
-// Event: Remove a cliente
+// Event: Remove cliente
 document.querySelector('#cliente-list').addEventListener('click', (e) => {
-	// Remove cliente from UI
+	// Remove cliente da UI
 	UI.deletecliente(e.target);
 
-	// Remove cliente from store
+	// Remove cliente do banco
 	Store.removecliente(
 		e.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling
 			.previousElementSibling.textContent
 	);
 
-	// Show success message
+	// mostra mensagem de sucesso
 	UI.showAlert('Removido', 'warning');
 });
